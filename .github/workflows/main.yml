@@ -1,37 +1,41 @@
-name: Aktualizacja Prawa (ISAP Monitor)
+name: Aktualizacja Prawa (ISAP + AI)
 
 on:
   schedule:
-    - cron: '0 8 * * *' 
-  workflow_dispatch: 
+    - cron: '0 8 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
+    
     steps:
       - name: Pobieranie kodu
         uses: actions/checkout@v4
 
-      - name: Python Setup
+      - name: Instalacja Pythona
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Instalacja bibliotek
-        run: pip install requests
+      - name: Instalacja bibliotek (requests + google-generativeai)
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests google-generativeai
 
-      - name: Uruchomienie skryptu ISAP
+      - name: Uruchomienie monitora ISAP z AI
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: python isap_monitor.py
 
-      - name: Wysłanie danych na serwer
+      - name: Publikacja na GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./ 
-          keep_files: true 
+          publish_dir: ./
+          keep_files: true
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Automatyczna aktualizacja ustaw'
+          commit_message: 'Automatyczna aktualizacja: Nowe ustawy + Analiza AI'
