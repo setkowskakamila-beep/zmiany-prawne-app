@@ -28,7 +28,7 @@ jobs:
       - name: Uruchomienie monitora ISAP z AI
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-        run: python isap_monitor.py
+        run: python monitor_ai.py
 
       - name: Publikacja na GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
