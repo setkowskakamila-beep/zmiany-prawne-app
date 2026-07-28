@@ -1,4 +1,4 @@
-name: Aktualizacja Prawa (ISAP + AI)
+name: Aktualizacja Prawa (AI)
 
 on:
   schedule:
@@ -8,34 +8,33 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
+    permissions: contents: write
     steps:
-      - name: Pobieranie kodu
-        uses: actions/checkout@v4
-
-      - name: Instalacja Pythona
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Instalacja bibliotek (requests + google-generativeai)
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests google-generativeai
-
-      - name: Uruchomienie monitora ISAP z AI
+      - uses: actions/checkout@v4
+      - name: Instalacja AI
+        run: pip install requests google-generativeai
+      - name: Uruchomienie skryptu AI
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-        run: python monitor_ai.py
-
-      - name: Publikacja na GitHub Pages
+        run: |
+          python -c "
+import os, json, google.generativeai as genai, requests
+from datetime import datetime
+genai.configure(api_key=os.environ['GOOGLE_API_KEY'])
+model = genai.GenerativeModel('gemini-1.5-flash')
+print('START AI')
+acts = requests.get('https://api.sejm.gov.pl/eli/acts/DU/2026').json().get('items', [])
+act = acts[-1]
+print('Analizuję: ' + act['title'])
+response = model.generate_content('Analizuj akt: ' + act['title'] + '. Daj JSON: old_text, new_text, effective_date.')
+data = json.loads(response.text.replace('
+```json','').replace('```',''))
+with open('zmiany_prawne.json', 'w', encoding='utf-8') as f:
+    json.dump([{'id': 'DU_2026', 'title': act['title'], **data}], f, ensure_ascii=False, indent=4)
+print('KONIEC')
+"
+      - name: Publikacja
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
-          keep_files: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Automatyczna aktualizacja: Nowe ustawy + Analiza AI'
