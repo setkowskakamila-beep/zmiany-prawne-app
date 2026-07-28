@@ -14,19 +14,19 @@ jobs:
         run: |
           pip install requests google-generativeai
           python -c "
-import os, json, google.generativeai as genai, requests
-genai.configure(api_key=os.environ['GOOGLE_API_KEY'])
-model = genai.GenerativeModel('gemini-1.5-flash')
-print('START AI ANALYZER')
-acts = requests.get('https://api.sejm.gov.pl/eli/acts/DU/2026').json().get('items', [])
-act = acts[-1]
-print('Analizuję: ' + act['title'])
-response = model.generate_content('Analizuj akt prawny: ' + act['title'] + '. Daj JSON: old_text, new_text, effective_date. Odpowiedz tylko czystym JSON.')
-data = json.loads(response.text.replace('
+          import os, json, google.generativeai as genai, requests
+          genai.configure(api_key=os.environ['GOOGLE_API_KEY'])
+          model = genai.GenerativeModel('gemini-1.5-flash')
+          print('START AI ANALYZER')
+          acts = requests.get('https://api.sejm.gov.pl/eli/acts/DU/2026').json().get('items', [])
+          act = acts[-1]
+          print('Analizuję: ' + act['title'])
+          response = model.generate_content('Analizuj akt prawny: ' + act['title'] + '. Daj JSON: old_text, new_text, effective_date. Odpowiedz tylko czystym JSON.')
+          data = json.loads(response.text.replace('
 ```json','').replace('```','').strip())
-with open('zmiany_prawne.json', 'w', encoding='utf-8') as f:
-    json.dump([{'id': 'DU_2026', 'title': act['title'], **data}], f, ensure_ascii=False, indent=4)
-"
+          with open('zmiany_prawne.json', 'w', encoding='utf-8') as f:
+              json.dump([{'id': 'DU_2026', 'title': act['title'], **data}], f, ensure_ascii=False, indent=4)
+          "
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'AI Update'
