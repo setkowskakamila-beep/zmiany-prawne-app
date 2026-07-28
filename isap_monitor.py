@@ -1,14 +1,17 @@
-import os, json, google.generativeai as genai, requests
+import os
+import json
+import google.generativeai as genai
+import requests
 from datetime import datetime
 
-# Konfiguracja API
+# Konfiguracja API - używamy oryginalnych angielskich komend
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 DB_FILE = "zmiany_prawne.json"
 
 def analyze_act_with_ai(title):
-    prompt = f"Analizuj akt prawny: '{title}'. Wyodrębnij JSON z polami: 'old_text', 'new_text', 'effective_date'. Jeśli brak danych, wpisz 'Brak szczegółowych danych'. Odpowiedz tylko czystym JSONem."
+    prompt = f"Analizuj akt prawny: '{title}'. Wyodrębnij JSON z polami: 'old_text', 'new_text', 'effective_date'. Odpowiedz tylko czystym JSONem."
     try:
         response = model.generate_content(prompt)
         text = response.text.replace("
@@ -18,11 +21,9 @@ def analyze_act_with_ai(title):
         return {"old_text": "Analiza AI nie powiodła się", "new_text": "Sprawdź źródło", "effective_date": "Nieznana"}
 
 def main():
-    # Pobierz akty z ISAP
     response = requests.get(f"https://api.sejm.gov.pl/eli/acts/DU/{datetime.now().year}")
     acts = response.json().get('items', [])
     
-    # Wczytaj bazę
     db = []
     if os.path.exists(DB_FILE):
         with open(DB_FILE, 'r', encoding='utf-8') as f:
@@ -30,7 +31,7 @@ def main():
             
     existing_ids = {i['id'] for i in db}
     
-    for act in acts[:5]: # Bierzemy 5 najnowszych
+    for act in acts[-5:]: 
         act_id = f"DU_{act['year']}_{act['pos']}"
         if act_id not in existing_ids and "zmieniająca" in act['title'].lower():
             ai_data = analyze_act_with_ai(act['title'])
