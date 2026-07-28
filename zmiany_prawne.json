@@ -1,0 +1,11 @@
+[
+  {
+    "id": "DU_2026_TEST",
+    "title": "Testowy akt prawny",
+    "source_url": "https://google.com",
+    "publication_date": "2026-07-28",
+    "old_text": "To jest test",
+    "new_text": "Działa!",
+    "effective_date": "2026-07-28"
+  }
+]
