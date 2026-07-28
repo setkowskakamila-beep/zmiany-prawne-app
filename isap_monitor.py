@@ -31,7 +31,7 @@ def main():
     existing_ids = {i['id'] for i in db}
     
     # Przetwórz tylko 5 najnowszych (żeby nie przekroczyć limitów AI na start)
-    for act in acts[-5:]: 
+    for act in acts[-10:]: 
         act_id = f"DU_{act['year']}_{act['pos']}"
         if act_id not in existing_ids and "zmieniająca" in act['title'].lower():
             print(f"Analizuję przez AI: {act['title']}")
