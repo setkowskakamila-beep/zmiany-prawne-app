@@ -31,7 +31,8 @@ def main():
             
     existing_ids = {i['id'] for i in db}
     
-    for act in acts[-5:]: 
+    for act in acts[-5:]:
+        print(f"Sprawdzam: {act['title']}")
         act_id = f"DU_{act['year']}_{act['pos']}"
         if act_id not in existing_ids and "zmieniająca" in act['title'].lower():
             ai_data = analyze_act_with_ai(act['title'])
